@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+from glob import glob
 
 import numpy as np
 import torch
@@ -14,6 +15,27 @@ from utils.dataset import BasicDataset
 from utils.crf import dense_crf
 
 
+def preprocess(pil_img, scale):
+    w, h = pil_img.size
+    newW, newH = int(scale * w), int(scale * h)
+    assert newW > 0 and newH > 0, 'Scale is too small'
+    pil_img = pil_img.resize((newW, newH))
+
+    img_nd = np.array(pil_img)
+
+    if len(img_nd.shape) == 2:
+        img_nd = np.expand_dims(img_nd, axis=2)
+
+    # HWC to CHW
+    img_trans = img_nd.transpose((2, 0, 1))
+    # norm = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    # img_norm = norm(torch.from_numpy(img_trans.astype(np.float32)))
+    if img_trans.max() > 1:
+        img_trans = img_trans / 255
+
+    return img_trans
+
+
 def predict_img(net,
                 full_img,
                 device,
@@ -22,7 +44,7 @@ def predict_img(net,
                 use_dense_crf=False):
     net.eval()
 
-    img = torch.from_numpy(BasicDataset.preprocess(full_img, scale_factor))
+    img = torch.from_numpy(preprocess(full_img, scale_factor))
 
     img = img.unsqueeze(0)
     img = img.to(device=device, dtype=torch.float32)
@@ -40,7 +62,7 @@ def predict_img(net,
         tf = transforms.Compose(
             [
                 transforms.ToPILImage(),
-                transforms.Resize(full_img.shape[1]),
+                transforms.Resize((480, 640)),
                 transforms.ToTensor()
             ]
         )
@@ -104,6 +126,7 @@ def mask_to_image(mask):
 
 if __name__ == "__main__":
     args = get_args()
+    # args.input = glob('data/imgs/*')
     in_files = args.input
     out_files = get_output_filenames(args)
 
@@ -112,7 +135,7 @@ if __name__ == "__main__":
     logging.info("Loading model {}".format(args.model))
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    logging.info(f'Using device {device}')
+    logging.info('Using device {0}'.format(device))
     net.to(device=device)
     net.load_state_dict(torch.load(args.model, map_location=device))
 

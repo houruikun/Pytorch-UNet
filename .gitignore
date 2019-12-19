@@ -1,7 +1,12 @@
 *.pyc
 data/
-__pycache__/
+**__pycache__/
 checkpoints/
 *.pth
 *.jpg
 SUBMISSION*
+*.png
+
+.idea
+venv/
+runs/

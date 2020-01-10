@@ -81,6 +81,7 @@ class BasicDataset(Dataset):
 
         img = np.transpose(img, (2, 0, 1))
         img = self.norm(torch.from_numpy(img.astype(np.float32)))
+        mask = np.array([mask])
         mask = torch.from_numpy(mask.astype(np.int64))
 
         return {'image': img, 'mask': mask}

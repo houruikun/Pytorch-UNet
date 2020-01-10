@@ -16,10 +16,10 @@ from torch.utils.tensorboard import SummaryWriter
 from utils.dataset import BasicDataset
 from torch.utils.data import DataLoader, random_split
 
-# dir_img = 'data/imgs/'
-dir_img = '/media/ruikun/Study/RWTH/HiWi/Yufeng_Code_Thesis/data/p3_li_c/extracted/real_rgb/'
-# dir_mask = 'data/masks/'
-dir_mask = '/media/ruikun/Study/RWTH/HiWi/Yufeng_Code_Thesis/data/p3_li_c/extracted/mask/'
+dir_img = 'data/imgs/'
+# dir_img = '/media/ruikun/Study/RWTH/HiWi/Yufeng_Code_Thesis/data/p3_li_c/extracted/real_rgb/'
+dir_mask = 'data/masks/'
+# dir_mask = '/media/ruikun/Study/RWTH/HiWi/Yufeng_Code_Thesis/data/p3_li_c/extracted/mask/'
 dir_checkpoint = 'checkpoints/'
 
 
@@ -32,7 +32,7 @@ def train_net(net,
               save_cp=True,
               img_scale=0.5):
 
-    dataset = BasicDataset(dir_img, dir_mask, use_noise=True, img_scale)
+    dataset = BasicDataset(dir_img, dir_mask, use_noise=True, scale=img_scale)
     n_val = int(len(dataset) * val_percent)
     n_train = len(dataset) - n_val
     train, val = random_split(dataset, [n_train, n_val])

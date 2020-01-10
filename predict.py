@@ -23,17 +23,17 @@ def preprocess(pil_img, scale):
 
     img_nd = np.array(pil_img)
 
-    if len(img_nd.shape) == 2:
-        img_nd = np.expand_dims(img_nd, axis=2)
+#    if len(img_nd.shape) == 2:
+#        img_nd = np.expand_dims(img_nd, axis=2)
 
     # HWC to CHW
     img_trans = img_nd.transpose((2, 0, 1))
-    # norm = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    # img_norm = norm(torch.from_numpy(img_trans.astype(np.float32)))
-    if img_trans.max() > 1:
-        img_trans = img_trans / 255
+    norm = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    img_norm = norm(torch.from_numpy(img_trans.astype(np.float32)))
+    # if img_trans.max() > 1:
+    #    img_trans = img_trans / 255
 
-    return img_trans
+    return img_norm
 
 
 def predict_img(net,
@@ -44,7 +44,7 @@ def predict_img(net,
                 use_dense_crf=False):
     net.eval()
 
-    img = torch.from_numpy(preprocess(full_img, scale_factor))
+    img = preprocess(full_img, scale_factor)
 
     img = img.unsqueeze(0)
     img = img.to(device=device, dtype=torch.float32)

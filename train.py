@@ -16,7 +16,7 @@ from torch.utils.tensorboard import SummaryWriter
 from utils.dataset import BasicDataset
 from torch.utils.data import DataLoader, random_split
 
-dir_img = 'data/imgs/'
+dir_img = 'data/depth/'
 # dir_img = '/media/ruikun/Study/RWTH/HiWi/Yufeng_Code_Thesis/data/p3_li_c/extracted/real_rgb/'
 dir_mask = 'data/masks/'
 # dir_mask = '/media/ruikun/Study/RWTH/HiWi/Yufeng_Code_Thesis/data/p3_li_c/extracted/mask/'
@@ -30,9 +30,10 @@ def train_net(net,
               lr=0.1,
               val_percent=0.1,
               save_cp=True,
-              img_scale=0.5):
+              img_scale=0.5,
+              img_mode='RGB'):
 
-    dataset = BasicDataset(dir_img, dir_mask, use_noise=True, scale=img_scale)
+    dataset = BasicDataset(dir_img, dir_mask, use_noise=True, scale=img_scale, mode=img_mode)
     n_val = int(len(dataset) * val_percent)
     n_train = len(dataset) - n_val
     train, val = random_split(dataset, [n_train, n_val])
@@ -51,6 +52,7 @@ def train_net(net,
         Checkpoints:     {save_cp}
         Device:          {device.type}
         Images scaling:  {img_scale}
+        Images mode:     {img_mode}
     ''')
 
     optimizer = optim.RMSprop(net.parameters(), lr=lr, weight_decay=1e-8)
@@ -131,6 +133,8 @@ def get_args():
                         help='Downscaling factor of the images')
     parser.add_argument('-v', '--validation', dest='val', type=float, default=10.0,
                         help='Percent of the data that is used as validation (0-100)')
+    parser.add_argument('-m', '--mode', dest='mode', type=str, default='RGB',
+                        help='Images to be trained are RGB or Depth')
 
     return parser.parse_args()
 
@@ -147,7 +151,7 @@ if __name__ == '__main__':
     #   - For 1 class and background, use n_classes=1
     #   - For 2 classes, use n_classes=1
     #   - For N > 2 classes, use n_classes=N
-    net = UNet(n_channels=3, n_classes=1)
+    net = UNet(n_channels=1, n_classes=1)
     logging.info(f'Network:\n'
                  f'\t{net.n_channels} input channels\n'
                  f'\t{net.n_classes} output channels (classes)\n'
@@ -170,7 +174,8 @@ try:
               lr=args.lr,
               device=device,
               img_scale=args.scale,
-              val_percent=args.val / 100)
+              val_percent=args.val / 100,
+              img_mode=args.mode)
 except KeyboardInterrupt:
     torch.save(net.state_dict(), 'INTERRUPTED.pth')
     logging.info('Saved interrupt')

@@ -44,7 +44,14 @@ def predict_img(net,
                 use_dense_crf=False):
     net.eval()
 
-    img = preprocess(full_img, scale_factor)
+    img = full_img.resize((320, 240))
+    img = np.array(img)
+    img = (img < 1200) * img
+    img = img / img.max()
+    img = np.expand_dims(img, axis=2)
+    img = img.transpose((2, 0, 1))
+    img = torch.from_numpy(img.astype(np.float32))
+    # img = preprocess(full_img, scale_factor)
 
     img = img.unsqueeze(0)
     img = img.to(device=device, dtype=torch.float32)
@@ -62,7 +69,7 @@ def predict_img(net,
         tf = transforms.Compose(
             [
                 transforms.ToPILImage(),
-                transforms.Resize((480, 640)),
+                transforms.Resize((240, 320)),
                 transforms.ToTensor()
             ]
         )
@@ -130,7 +137,7 @@ if __name__ == "__main__":
     in_files = args.input
     out_files = get_output_filenames(args)
 
-    net = UNet(n_channels=3, n_classes=1)
+    net = UNet(n_channels=1, n_classes=1)
 
     logging.info("Loading model {}".format(args.model))
 
